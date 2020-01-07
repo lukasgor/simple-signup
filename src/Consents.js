@@ -1,7 +1,9 @@
 import React from "react";
-import { connect } from "react-redux";
+import { useDispatch, useSelector } from "react-redux";
 
-const Consents = ({ consent, selected, dispatch }) => {
+const Consents = () => {
+  const dispatch = useDispatch();
+  const consent = useSelector(state => state.consents.consent);
   return (
     <div>
       <input
@@ -10,17 +12,10 @@ const Consents = ({ consent, selected, dispatch }) => {
         }}
         type="checkbox"
         id="consent"
-        checked={selected}
       />
       <label htmlFor="consent">{consent}</label>
     </div>
   );
 };
 
-const mapStateToProps = state => {
-  return {
-    consent: state.consents.consent
-  };
-};
-
-export default connect(mapStateToProps)(Consents);
+export default Consents;

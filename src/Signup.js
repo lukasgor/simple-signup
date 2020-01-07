@@ -1,60 +1,47 @@
-import React, { Component } from "react";
-import { connect } from "react-redux";
+import React from "react";
+import { useSelector } from "react-redux";
+import { useHistory } from "react-router-dom";
 import Consents from "./Consents";
 import Error from "./Error";
 
-class Signup extends Component {
-  state = {
-    email: "",
-    error: null
-  };
-  async handleSubmit(e) {
-    e.preventDefault();
-    const { email } = this.state;
-    const { consentSelected, history } = this.props;
-    try {
-      await fetch("https://reqres.in/api/users", {
-        method: "POST",
-        body: JSON.stringify({ email, consentSelected })
-      });
+const Signup = () => {
+  const [email, setEmail] = React.useState("");
+  const [error, setError] = React.useState(null);
+  const history = useHistory();
+  const consentSelected = useSelector(({ consents }) => consents.selected);
+  const handleSubmit = React.useCallback(
+    async e => {
+      e.preventDefault();
 
-      history.push("/thank-you");
-    } catch (error) {
-      this.setState({ error });
-    }
-  }
+      try {
+        await fetch("https://reqres.in/api/users", {
+          method: "POST",
+          body: JSON.stringify({ email, consentSelected })
+        });
 
-  handleEmailChange(value) {
-    this.setState({
-      email: value
-    });
-  }
-
-  render() {
-    const { error } = this.state;
-    return (
-      <form className="signup-form" onSubmit={this.handleSubmit.bind(this)}>
-        <h1>Sign up now!</h1>
-        <div>
-          <label htmlFor="email">Email</label>
-          <input
-            onChange={e => this.handleEmailChange(e.target.value)}
-            id="email"
-            type="email"
-          />
-        </div>
-        <Consents />
-        {error && <Error />}
-        <button type="submit">Sign up</button>
-      </form>
-    );
-  }
-}
-
-const mapStateToProps = state => {
-  return {
-    consentSelected: state.consents.selected
-  };
+        history.push("/thank-you");
+      } catch (error) {
+        setError(error);
+      }
+    },
+    [email, consentSelected, history]
+  );
+  return (
+    <form className="signup-form" onSubmit={handleSubmit}>
+      <h1>Sign up now!</h1>
+      <div>
+        <label htmlFor="email">Email</label>
+        <input
+          onChange={e => setEmail(e.target.value)}
+          id="email"
+          type="email"
+        />
+      </div>
+      <Consents />
+      {error && <Error />}
+      <button type="submit">Sign up</button>
+    </form>
+  );
 };
 
-export default connect(mapStateToProps)(Signup);
+export default Signup;
