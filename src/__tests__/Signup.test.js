@@ -6,19 +6,22 @@ import Signup from "../Signup";
 
 const sampleEmail = "test@example.com";
 
+let mockFetch;
+
 beforeEach(() => {
   const mockSuccessResponse = {
-    success: true
+    json: () =>
+      Promise.resolve({
+        success: true
+      })
   };
-  const mockJsonPromise = Promise.resolve(mockSuccessResponse);
-  const mockFetchPromise = Promise.resolve({
-    json: () => mockJsonPromise
-  });
-  jest.spyOn(global, "fetch").mockImplementation(() => mockFetchPromise);
+  mockFetch = jest
+    .spyOn(global, "fetch")
+    .mockResolvedValue(mockSuccessResponse);
 });
 
 afterEach(() => {
-  global.fetch.mockClear();
+  mockFetch.mockClear();
 });
 
 const fillTheForm = () => {
@@ -46,7 +49,7 @@ it("sends proper data", () => {
   const consent = screen.getByLabelText("I agree");
   fireEvent.click(consent);
   submitTheForm();
-  expect(global.fetch).toHaveBeenCalledWith("https://reqres.in/api/users", {
+  expect(mockFetch).toHaveBeenCalledWith("https://reqres.in/api/users", {
     method: "POST",
     body: JSON.stringify({ email: sampleEmail, consentSelected: true })
   });
@@ -62,14 +65,13 @@ it("redirects to thank-you page", async () => {
 
 it("displays error when request fails", async () => {
   const mockFailedResponse = {
-    success: false,
-    status: 400
+    json: () =>
+      Promise.resolve({
+        success: false,
+        status: 400
+      })
   };
-  const mockJsonPromise = Promise.resolve(mockFailedResponse);
-  const mockFetchPromise = Promise.reject({
-    json: () => mockJsonPromise
-  });
-  jest.spyOn(global, "fetch").mockImplementation(() => mockFetchPromise);
+  mockFetch.mockRejectedValueOnce(mockFailedResponse);
   render(<Route exact path="/" component={Signup} />);
   fillTheForm();
   submitTheForm();
